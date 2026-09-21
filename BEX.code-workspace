@@ -30,12 +30,21 @@
 			"ms-dotnettools.csdevkit",
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",
+			"dsznajder.es7-react-js-snippets",
+			"burkeholland.simple-react-snippets",
 			"hashicorp.terraform",
 			"googlecloudtools.cloudcode",
 			"ms-azuretools.vscode-docker",
-			"mtxr.sqltools",
+			"ms-kubernetes-tools.vscode-kubernetes-tools",
+			"ms-mssql.mssql",
+			"redhat.vscode-yaml",
 			"bierner.markdown-mermaid",
-			"eamodio.gitlens"
+			"davidanson.vscode-markdownlint",
+			"eamodio.gitlens",
+			"humao.rest-client",
+			"ms-playwright.playwright",
+			"github.vscode-github-actions",
+			"streetsidesoftware.code-spell-checker"
 		]
 	}
 }
