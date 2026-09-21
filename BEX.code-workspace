@@ -18,7 +18,7 @@
 			"editor.tabSize": 4
 		},
 		"omnisharp.enableEditorConfigSupport": true,
-		"typescript.tsdk": "node_modules/typescript/lib",
+		"js/ts.tsdk.path": "node_modules/typescript/lib",
 		"markdown.mermaid.enabled": true
 	},
 	"extensions": {
