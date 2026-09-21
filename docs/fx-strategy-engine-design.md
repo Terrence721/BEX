@@ -2,7 +2,9 @@
 
 2026-09-21 · Terrence Daniels
 
-Live version (comments, editing): https://claude.ai/artifact/48wHV3epZ5RdDBvbQbL8jN
+Live version (comments, editing): <https://claude.ai/artifact/48wHV3epZ5RdDBvbQbL8jN>
+
+Expanded, single-purpose diagrams: [docs/diagrams/](diagrams/index.html)
 
 ## Executive Summary
 
