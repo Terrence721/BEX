@@ -19,7 +19,10 @@
 		},
 		"omnisharp.enableEditorConfigSupport": true,
 		"js/ts.tsdk.path": "node_modules/typescript/lib",
-		"markdown.mermaid.enabled": true
+		"markdown.mermaid.enabled": true,
+		"json.schemaDownload.trustedDomains": {
+			"https://xunit.net/": true
+		}
 	},
 	"extensions": {
 		"recommendations": [
