@@ -27,3 +27,6 @@ Thumbs.db
 
 # Local tool session state (not project content)
 .claude/
+
+# Local spell-checker config (not shared with the team)
+cspell.json
