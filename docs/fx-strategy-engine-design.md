@@ -8,7 +8,7 @@ Expanded, single-purpose diagrams: [docs/diagrams/](diagrams/index.html)
 
 ## Executive Summary
 
-This platform gives a single broker-dealer / commercial-bank FX franchise one strategy engine instead of one-off scripts per desk. The core architectural bet: every FX trading and pricing behavior — market making, algo execution, hedging, netting — is implemented as an interchangeable implementation of one `IFxStrategy` interface (the GoF Strategy pattern), selected and versioned at runtime instead of hardcoded per client or per desk.
+This platform gives a single broker-dealer / commercial-bank FX franchise one strategy engine instead of one-off scripts per desk. The core architectural bet: every FX trading and pricing behavior — market making, algo execution, hedging, netting — is an interchangeable strategy implementation (the GoF Strategy pattern), split by capability (quoting vs. execution vs. market-data reactivity) rather than one wide interface, selected and versioned at runtime instead of hardcoded per client or per desk.
 
 That engine runs inside a .NET Core microservice fleet on GKE (GCP), backed by Cloud SQL for transactional state and Pub/Sub as the event backbone. React is the only UI framework in scope and covers two distinct surfaces — an internal trader/strategy-ops workbench, and a partner-facing portal plus deployment-automation dashboard — sharing one component library but deployed and access-gated independently.
 
@@ -38,42 +38,56 @@ Broker-dealer and commercial-bank FX desks share infrastructure but diverge shar
 
 ## FX Strategy Pattern Design
 
-The engine is built directly on the GoF **Strategy** behavioral pattern: one `IFxStrategy` contract, many interchangeable implementations, selected by a context object at runtime instead of branching logic scattered across services.
+The engine is built on the GoF **Strategy** behavioral pattern, decomposed by capability rather than one wide contract — implemented and refined past this doc's original sketch (a single `IFxStrategy` interface) once building it surfaced a real ISP violation: not every strategy quotes, not every strategy executes, and forcing both onto one contract meant implementing methods a given strategy didn't need.
 
 ```mermaid
 classDiagram
-  class IFxStrategy {
+  class IStrategyIdentity {
     <<interface>>
     +string StrategyId
-    +Quote GetQuote(RequestContext)
-    +ExecutionPlan Execute(Order)
-    +void OnMarketDataUpdate(Tick)
+    +string Version
   }
-  class StrategyContext {
-    -IFxStrategy strategy
-    +SetStrategy(IFxStrategy)
-    +Run(RequestContext)
+  class IQuotingStrategy {
+    <<interface>>
+    +Quote GetQuote(RequestContext)
+  }
+  class IExecutionStrategy {
+    <<interface>>
+    +ExecutionPlan Execute(Order)
+  }
+  class IMarketDataReactive {
+    <<interface>>
+    +void OnMarketDataUpdate(Tick)
   }
   class MarketMakingStrategy
   class TwapExecutionStrategy
-  class SmartOrderRoutingStrategy
-  class DeltaHedgingStrategy
-  IFxStrategy <|.. MarketMakingStrategy
-  IFxStrategy <|.. TwapExecutionStrategy
-  IFxStrategy <|.. SmartOrderRoutingStrategy
-  IFxStrategy <|.. DeltaHedgingStrategy
-  StrategyContext o-- IFxStrategy
+  IStrategyIdentity <|-- IQuotingStrategy
+  IStrategyIdentity <|-- IExecutionStrategy
+  IQuotingStrategy <|.. MarketMakingStrategy
+  IExecutionStrategy <|.. TwapExecutionStrategy
+  class IQuotingStrategyFactory {
+    <<interface>>
+    +IQuotingStrategy ResolveQuotingStrategy(clientId, instrumentClass)
+  }
+  class IExecutionStrategyFactory {
+    <<interface>>
+    +IExecutionStrategy ResolveExecutionStrategy(clientId, instrumentClass)
+  }
+  IQuotingStrategyFactory --> IQuotingStrategy : creates
+  IExecutionStrategyFactory --> IExecutionStrategy : creates
 ```
 
-**Runtime selection:** an `IStrategyFactory`, resolved via .NET Core DI, picks the concrete strategy keyed by client segment, instrument class, and desk — driven by a `StrategyAssignment` row (ClientId, InstrumentClass, StrategyId, Version, EffectiveFrom) in SQL, not by config files or redeploys.
+A concrete strategy implements only what it does — `MarketMakingStrategy` is `IQuotingStrategy` (plus reading live prices via a separate `ILatestPriceProvider`, not `IMarketDataReactive` directly), `TwapExecutionStrategy` is `IExecutionStrategy`. Neither implements the other. `IMarketDataReactive` is a further separate, non-identity-bound capability — only the shared price-tracking component implements it, not every strategy, avoiding the duplicated tick-tracking logic that would otherwise creep into each one.
+
+**Runtime selection:** split by capability too — `IQuotingStrategyFactory` and `IExecutionStrategyFactory`, not one `IStrategyFactory`, since a caller needing a quote and a caller needing to execute an order are genuinely separate call paths, not simultaneous. Each resolves `(ClientId, InstrumentClass)` → a `StrategyAssignment` row (ClientId, InstrumentClass, StrategyId, Version, EffectiveFrom) via a repository, then looks up the concrete strategy by `StrategyId` in an injected registry — not config files or redeploys.
 
 **Safe versioning:** a new strategy version ships behind a shadow flag — it runs against live market data and produces quotes/decisions that are logged but not acted on, compared against the incumbent, then promoted via canary (a small client/instrument slice) before full cutover.
 
-**Backtesting hook:** because `IFxStrategy` takes a `RequestContext` and emits a `Quote`/`ExecutionPlan` with no hidden dependency on live infrastructure, the identical implementation runs against historical tick replay for backtesting — one code path for research, staging, and production.
+**Backtesting hook (design intent, not yet built):** because `IQuotingStrategy.GetQuote` and `IExecutionStrategy.Execute` have no hidden dependency on live infrastructure, a generic replay harness — not implemented yet — can run either against historical tick replay for backtesting, once it exists: one code path for research, staging, and production, rather than a `Backtest()` method duplicated on every strategy.
 
 ## FX Trading Strategy Catalog
 
-Each row is one `IFxStrategy` implementation.
+Each row is one strategy implementation (`IQuotingStrategy` and/or `IExecutionStrategy`, per its category below).
 
 | Strategy | Category | What it does | Primary user | Key parameters |
 | --- | --- | --- | --- | --- |
@@ -133,7 +147,7 @@ Primary region `us-central1` with a warm standby in `us-east4`; all services sit
 | Service | Bounded context | Responsibilities | Publishes | Consumes |
 | --- | --- | --- | --- | --- |
 | Pricing | Rate generation | Streams composite rates from LPs and internal book | `rate.updated` | LP feeds, `inventory.changed` |
-| Strategy Engine | Trading logic | Hosts `IFxStrategy` implementations, quote/execution decisions | `quote.generated`, `order.decision` | `rate.updated`, `strategy.assigned` |
+| Strategy Engine | Trading logic | Hosts strategy implementations, quote/execution decisions | `quote.generated`, `order.decision` | `rate.updated`, `strategy.assigned` |
 | Order Management (OMS) | Order lifecycle | Accepts, routes, and tracks client orders to fill | `order.filled`, `order.rejected` | `order.decision` |
 | Risk | Pre/post-trade risk | Credit limits, max order size, kill switch, position limits | `risk.breach`, `limit.updated` | `order.filled`, `inventory.changed` |
 | Compliance / Surveillance | Regulated behavior | Best-ex checks, trade surveillance rules, regulatory export | `surveillance.alert` | `order.filled`, `quote.generated` |
@@ -163,7 +177,7 @@ High-write tables (Quotes, Orders) use Cloud SQL read replicas for blotter/repor
 
 ## React Frontend — Internal Trading & Strategy Management UI
 
-One React SPA behind the internal gateway, three main surfaces: a real-time pricing/order **blotter**, a **strategy console** (assign/version/promote `IFxStrategy` implementations per client and instrument, watch shadow vs. live comparison), and a **risk/position** view. State is split between React Query for request/response data (client lists, historical trades) and a thin WebSocket layer feeding a normalized store for streaming quotes and order updates — the blotter never re-renders the whole grid on a tick, only the changed rows.
+One React SPA behind the internal gateway, three main surfaces: a real-time pricing/order **blotter**, a **strategy console** (assign/version/promote strategy implementations per client and instrument, watch shadow vs. live comparison), and a **risk/position** view. State is split between React Query for request/response data (client lists, historical trades) and a thin WebSocket layer feeding a normalized store for streaming quotes and order updates — the blotter never re-renders the whole grid on a tick, only the changed rows.
 
 Auth is internal SSO (OIDC) with role-based views: traders see their own book, strategy owners see the assignment console, risk/compliance get read-only cross-desk visibility. Built on the same shared component library as the partner-facing React app (below) so charting, tables, and form primitives aren't duplicated.
 
@@ -172,7 +186,7 @@ Auth is internal SSO (OIDC) with role-based views: traders see their own book, s
 Two more React apps on the same component library, deployed and gated independently from the internal workbench:
 
 - **Partner Portal** (third-party facing, served through Apigee): rate access, order/trade history, API key self-service, agreement/KYC status. No direct database access — everything goes through the OMS and Client Onboarding partner endpoints, same as any other external API consumer.
-- **Deployment Automation Dashboard** (internal only): pipeline status per service, canary rollout controls, and the approval screen for promoting a new `IFxStrategy` version from shadow → canary → full production. Write actions here require internal SSO plus a second approver — this is the control surface for changing live trading behavior, so it's treated like a production change-management tool, not a reporting dashboard.
+- **Deployment Automation Dashboard** (internal only): pipeline status per service, canary rollout controls, and the approval screen for promoting a new strategy version from shadow → canary → full production. Write actions here require internal SSO plus a second approver — this is the control surface for changing live trading behavior, so it's treated like a production change-management tool, not a reporting dashboard.
 
 ## Third-Party Integration & API Gateway Strategy
 
@@ -209,7 +223,7 @@ flowchart LR
   ProdCanary --> ProdFull[Full production]
 ```
 
-Infrastructure is Terraform-managed end to end (GKE clusters, Cloud SQL, Pub/Sub topics, Apigee proxies). Internal services and the internal React app deploy on one pipeline with standard peer-review gates; the partner portal, third-party FIX/REST endpoints, and any `IFxStrategy` version promotion run on a second pipeline with an additional compliance/product approval step, since those changes directly touch client-facing behavior or live trading logic. Strategy Engine deploys use canary-by-traffic-slice rather than canary-by-user, so a bad strategy version is caught against a small percentage of real flow before full cutover, with automatic rollback on risk-limit or error-rate breach.
+Infrastructure is Terraform-managed end to end (GKE clusters, Cloud SQL, Pub/Sub topics, Apigee proxies). Internal services and the internal React app deploy on one pipeline with standard peer-review gates; the partner portal, third-party FIX/REST endpoints, and any strategy version promotion run on a second pipeline with an additional compliance/product approval step, since those changes directly touch client-facing behavior or live trading logic. Strategy Engine deploys use canary-by-traffic-slice rather than canary-by-user, so a bad strategy version is caught against a small percentage of real flow before full cutover, with automatic rollback on risk-limit or error-rate breach.
 
 ## Security, Compliance & Risk Controls
 
