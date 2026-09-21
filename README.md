@@ -6,7 +6,8 @@ A ground-up architecture and design document for an FX strategy platform serving
 
 - **[Design Document](docs/fx-strategy-engine-design.md)** — business requirements, the strategy-pattern engine design, a 10-strategy catalog, GCP microservice architecture, CI/CD, security controls, and the phased rollout plan.
 - **[`docs/diagrams/`](docs/diagrams/index.html)** — seven standalone diagrams going deeper than the design doc on each subsystem: strategy resolution, system architecture, order-placement sequence, data model, CI/CD, partner onboarding, deployment topology.
-- **[Project board](https://github.com/users/Terrence721/projects/10)** — Backlog → Planned → In Progress → Verification & QA → Done.
+- **[`todo.md`](todo.md)** — the source of truth for what's done and what's left, phase by phase.
+- **[Project board](https://github.com/users/Terrence721/projects/10)** — Backlog → Planned → In Progress → Verification & QA → Done, synced with `todo.md`.
 - **[Milestones](https://github.com/Terrence721/BEX/milestones)** — one per rollout phase (MVP → Strategy breadth → Third-party GA → Scale).
 - [Portfolio hub](https://terrence721.github.io/) · [GitHub profile](https://github.com/Terrence721) — this project in the context of this user's other work.
 
@@ -27,12 +28,13 @@ The same reasoning shows up in the infrastructure choices: one Cloud SQL instanc
 - [ ] **Phase 3 — Third-party GA.** Apigee production tier, FIX connectivity, full strategy catalog, deployment automation dashboard for canary strategy promotion.
 - [ ] **Phase 4 — Scale.** Multi-region active/active evaluation, corporate hedging-program strategies, expanded partner tiering.
 
-Tracked in detail on the [project board](https://github.com/users/Terrence721/projects/10) and this repo's [issues](https://github.com/Terrence721/BEX/issues) — nothing above is checked off yet; this is still the design phase.
+Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/10); mirrored here as a quick-glance checklist. Nothing above is checked off yet — this is still the design phase.
 
 ## Repository Layout
 
 ```text
 docs/               Design doc and docs/diagrams/ (standalone HTML diagrams)
+todo.md              Phase-by-phase progress log — the source of truth
 .devcontainer/       Isolated dev environment — .NET 8 + Node 20, 19 scoped VS Code extensions
 .github/             Dependabot config
 .vscode/             Extension recommendations (for outside the Dev Container)
