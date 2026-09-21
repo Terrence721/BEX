@@ -1,2 +1,6 @@
 <Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/StrategyEngine/">
+    <Project Path="src/StrategyEngine/StrategyEngine.Domain/StrategyEngine.Domain.csproj" />
+  </Folder>
 </Solution>
