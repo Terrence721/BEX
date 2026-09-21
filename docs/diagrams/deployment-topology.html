@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEX — deployment topology</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #f6f7f9; --ink: #14181f; --ink-soft: #4b5563;
+    --border: #e2e5ea; --card-bg: #ffffff; --accent: #3457d5;
+    --done-bg: #e8f5ec; --done-border: #a9d9ba; --done-ink: #1d6b3a;
+    --active-bg: #fff4e0; --active-border: #f0c987; --active-ink: #8a5a00;
+    --todo-bg: #f3f4f6; --todo-border: #d9dce1; --todo-ink: #6b7280;
+    --layer-label: #8b93a1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+      --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+      --done-bg: #17301f; --done-border: #2d6b41; --done-ink: #7fd99a;
+      --active-bg: #352505; --active-border: #8a6a0e; --active-ink: #f0c25c;
+      --todo-bg: #1c2027; --todo-border: #333944; --todo-ink: #8b93a1;
+      --layer-label: #6b7280;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+    --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+    --done-bg: #17301f; --done-border: #2d6b41; --done-ink: #7fd99a;
+    --active-bg: #352505; --active-border: #8a6a0e; --active-ink: #f0c25c;
+    --todo-bg: #1c2027; --todo-border: #333944; --todo-ink: #8b93a1;
+    --layer-label: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; font-weight: 700; color: var(--accent); margin: 0 0 0.6rem; }
+  h1 { margin: 0 0 0.6rem; font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -0.01em; }
+  .dek { color: var(--ink-soft); max-width: 70ch; margin: 0 0 1.6rem; font-size: 1.02rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 0.5rem 0 2.2rem; font-size: 0.86rem; color: var(--ink-soft); }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .swatch { width: 0.9rem; height: 0.9rem; border-radius: 4px; border: 1px solid; flex: none; }
+  .swatch.contract { background: var(--card-bg); border-color: var(--accent); border-width: 2px; }
+  .swatch.done { background: var(--done-bg); border-color: var(--done-border); }
+  .swatch.todo { background: var(--todo-bg); border-color: var(--todo-border); }
+  .region-box { border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem 1.4rem; margin-bottom: 1.4rem; }
+  .region-box.primary { border-color: var(--done-border); background: var(--bg-subtle); }
+  .region-box.dr { border-style: dashed; }
+  .region-title { font-weight: 700; font-size: 1.02rem; margin: 0 0 0.9rem; display: flex; align-items: center; gap: 0.6rem; }
+  .region-title .tag { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.1rem 0.5rem; border-radius: 999px; }
+  .region-title .tag.primary { background: var(--done-bg); color: var(--done-ink); border: 1px solid var(--done-border); }
+  .region-title .tag.dr { background: var(--todo-bg); color: var(--todo-ink); border: 1px solid var(--todo-border); }
+  .layer-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--layer-label); margin: 0.9rem 0 0.6rem; }
+  .layer-label:first-of-type { margin-top: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 0.3rem; }
+  .node { border: 1px solid var(--todo-border); background: var(--card-bg); color: var(--ink); border-radius: 10px; padding: 0.55rem 0.9rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.83rem; font-weight: 600; }
+  .node.contract { border: 2px solid var(--accent); color: var(--accent); }
+  .replication { text-align: center; color: var(--layer-label); font-size: 0.85rem; margin: 0.3rem 0 1.4rem; }
+  .note { font-size: 0.88rem; color: var(--ink-soft); margin: 0.3rem 0 1.6rem; }
+  footer { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--ink-soft); }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">BEX — diagram 07</p>
+  <h1>Deployment topology</h1>
+  <p class="dek">
+    The physical/regional layout behind the logical service diagram: which GKE node pool a service lands on,
+    where the VPC boundary sits, and what replicates to the DR region.
+  </p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch contract"></span> Global edge (not region-scoped)</div>
+    <div class="legend-item"><span class="swatch done"></span> Primary region</div>
+    <div class="legend-item"><span class="swatch todo"></span> DR region (warm standby)</div>
+  </div>
+
+  <p class="layer-label">Global</p>
+  <div class="row">
+    <div class="node contract">Cloud Armor</div>
+    <div class="node contract">Apigee API Gateway</div>
+    <div class="node contract">Secret Manager</div>
+    <div class="node contract">Pub/Sub</div>
+  </div>
+  <p class="note">These four aren't pinned to one region — Pub/Sub in particular is the async backbone linking both regions below.</p>
+
+  <div class="region-box primary">
+    <p class="region-title">us-central1 <span class="tag primary">Primary</span></p>
+
+    <p class="layer-label">GKE — node pools</p>
+    <div class="row">
+      <div class="node">general-purpose pool<br><span style="font-weight:400;font-size:0.76rem">OMS, Risk, Compliance, Onboarding, Settlement, Reference Data</span></div>
+    </div>
+    <div class="row">
+      <div class="node">high-mem pool<br><span style="font-weight:400;font-size:0.76rem">Pricing, Strategy Engine — latency-sensitive, isolated from noisy-neighbor pods</span></div>
+    </div>
+
+    <p class="layer-label">Data (private VPC, no public IPs)</p>
+    <div class="row">
+      <div class="node">Cloud SQL — 5 instances (one per service)</div>
+      <div class="node">Memorystore</div>
+      <div class="node">BigQuery</div>
+    </div>
+  </div>
+
+  <div class="replication">▼ async cross-region replication — Cloud SQL read replicas + GKE config sync ▼</div>
+
+  <div class="region-box dr">
+    <p class="region-title">us-east4 <span class="tag dr">DR — warm standby</span></p>
+    <div class="row">
+      <div class="node">GKE cluster — warm standby<br><span style="font-weight:400;font-size:0.76rem">Same node pool split, scaled down until failover</span></div>
+    </div>
+    <div class="row">
+      <div class="node">Cloud SQL read replicas</div>
+    </div>
+  </div>
+
+  <p class="note">
+    Target: RPO 5 min / RTO 30 min, active/passive. See
+    <a href="../fx-strategy-engine-design.md#non-functional-requirements-dr--phased-roadmap">design doc</a> for
+    the full NFR table.
+  </p>
+
+  <footer>
+    See also <a href="system-architecture.html">02 — System architecture</a> for the logical service view.
+    Part of <a href="https://github.com/Terrence721/BEX">BEX</a>.
+  </footer>
+</div>
+</body>
+</html>

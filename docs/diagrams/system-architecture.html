@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEX — system architecture</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #f6f7f9; --ink: #14181f; --ink-soft: #4b5563;
+    --border: #e2e5ea; --card-bg: #ffffff; --accent: #3457d5;
+    --done-bg: #e8f5ec; --done-border: #a9d9ba; --done-ink: #1d6b3a;
+    --active-bg: #fff4e0; --active-border: #f0c987; --active-ink: #8a5a00;
+    --todo-bg: #f3f4f6; --todo-border: #d9dce1; --todo-ink: #6b7280;
+    --layer-label: #8b93a1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+      --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+      --done-bg: #17301f; --done-border: #2d6b41; --done-ink: #7fd99a;
+      --active-bg: #352505; --active-border: #8a6a0e; --active-ink: #f0c25c;
+      --todo-bg: #1c2027; --todo-border: #333944; --todo-ink: #8b93a1;
+      --layer-label: #6b7280;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+    --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+    --done-bg: #17301f; --done-border: #2d6b41; --done-ink: #7fd99a;
+    --active-bg: #352505; --active-border: #8a6a0e; --active-ink: #f0c25c;
+    --todo-bg: #1c2027; --todo-border: #333944; --todo-ink: #8b93a1;
+    --layer-label: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; font-weight: 700; color: var(--accent); margin: 0 0 0.6rem; }
+  h1 { margin: 0 0 0.6rem; font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -0.01em; }
+  .dek { color: var(--ink-soft); max-width: 70ch; margin: 0 0 1.6rem; font-size: 1.02rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 0.5rem 0 2.4rem; font-size: 0.86rem; color: var(--ink-soft); }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .swatch { width: 0.9rem; height: 0.9rem; border-radius: 4px; border: 1px solid; flex: none; }
+  .swatch.contract { background: var(--card-bg); border-color: var(--accent); border-width: 2px; }
+  .swatch.done { background: var(--done-bg); border-color: var(--done-border); }
+  .swatch.active { background: var(--active-bg); border-color: var(--active-border); }
+  .swatch.todo { background: var(--todo-bg); border-color: var(--todo-border); }
+  .graph { display: flex; flex-direction: column; gap: 0; }
+  .layer-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--layer-label); margin: 0 0 0.7rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 1rem; }
+  .node { border: 1px solid var(--todo-border); background: var(--todo-bg); color: var(--todo-ink); border-radius: 10px; padding: 0.6rem 0.95rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; font-weight: 600; }
+  .node.contract { border: 2px solid var(--accent); background: var(--card-bg); color: var(--accent); font-weight: 700; }
+  .node.done { border-color: var(--done-border); background: var(--done-bg); color: var(--done-ink); }
+  .node.active { border-color: var(--active-border); background: var(--active-bg); color: var(--active-ink); }
+  .node.wide { flex-basis: 100%; }
+  .node .sig { display: block; font-weight: 400; font-size: 0.76rem; opacity: 0.85; margin-top: 0.15rem; }
+  .arrow-row { text-align: center; color: var(--layer-label); font-size: 1.1rem; margin: 0 0 1.1rem; letter-spacing: 0.3em; }
+  .divider { border: none; border-top: 1px dashed var(--border); margin: 0.4rem 0 1.8rem; }
+  .note { font-size: 0.88rem; color: var(--ink-soft); margin: 0.3rem 0 1.6rem; }
+  .note code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg-subtle); padding: 0.1rem 0.35rem; border-radius: 4px; }
+  .dr-box { border: 1px dashed var(--border); border-radius: 12px; padding: 1rem 1.2rem; margin-top: 0.5rem; }
+  .dr-box .layer-label { margin-bottom: 0.5rem; }
+  footer { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--ink-soft); }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">BEX — diagram 02</p>
+  <h1>System architecture — edge to data</h1>
+  <p class="dek">
+    The high-level diagram in the main doc collapses the data layer to three boxes. This one shows the actual
+    boundary: no service reads another service's database directly, and everything cross-service goes through a
+    named Pub/Sub topic instead.
+  </p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch contract"></span> Edge / entry point</div>
+    <div class="legend-item"><span class="swatch todo"></span> Compute service (GKE)</div>
+    <div class="legend-item"><span class="swatch active"></span> Async Pub/Sub topic</div>
+    <div class="legend-item"><span class="swatch done"></span> Data store</div>
+  </div>
+
+  <div class="graph">
+    <p class="layer-label">Edge — global, VPC-fronting</p>
+    <div class="row">
+      <div class="node contract">Cloud Armor</div>
+      <div class="node contract">Apigee (3rd-party)</div>
+      <div class="node contract">Internal API Gateway</div>
+      <div class="node contract">Secret Manager</div>
+    </div>
+
+    <div class="arrow-row"><span>▼</span></div>
+
+    <p class="layer-label">Compute — GKE, private VPC, us-central1 (primary)</p>
+    <div class="row">
+      <div class="node">Pricing</div>
+      <div class="node">Strategy Engine</div>
+      <div class="node">Order Management</div>
+      <div class="node">Risk</div>
+    </div>
+    <div class="row">
+      <div class="node">Compliance / Surveillance</div>
+      <div class="node">Client Onboarding</div>
+      <div class="node">Settlement</div>
+      <div class="node">Reference Data</div>
+    </div>
+    <p class="note">Only Strategy Engine ↔ Order Management talk synchronously (gRPC). Everything else below is async.</p>
+
+    <div class="arrow-row"><span>▼</span></div>
+
+    <p class="layer-label">Async backbone — named Pub/Sub topics</p>
+    <div class="row">
+      <div class="node active">rate.updated</div>
+      <div class="node active">quote.generated</div>
+      <div class="node active">order.decision</div>
+      <div class="node active">order.filled</div>
+    </div>
+    <div class="row">
+      <div class="node active">risk.breach</div>
+      <div class="node active">surveillance.alert</div>
+      <div class="node active">trade.settled</div>
+    </div>
+
+    <div class="arrow-row"><span>▼</span></div>
+
+    <p class="layer-label">Data — one Cloud SQL instance per service, plus shared analytics stores</p>
+    <div class="row">
+      <div class="node done">Pricing DB</div>
+      <div class="node done">Orders / Trades DB</div>
+      <div class="node done">Risk DB</div>
+      <div class="node done">ClientAccounts DB</div>
+      <div class="node done">Instruments DB</div>
+    </div>
+    <div class="row">
+      <div class="node done">Memorystore (rate cache)</div>
+      <div class="node done">BigQuery (TCA / analytics)</div>
+    </div>
+  </div>
+
+  <div class="dr-box">
+    <p class="layer-label">us-east4 — DR, warm standby</p>
+    <p class="note" style="margin:0">
+      GKE cluster on warm standby; Cloud SQL read replicas via async cross-region replication. RPO 5 min / RTO
+      30 min — see the <a href="../fx-strategy-engine-design.md#non-functional-requirements-dr--phased-roadmap">design doc</a>.
+    </p>
+  </div>
+
+  <footer>
+    Part of <a href="https://github.com/Terrence721/BEX">BEX</a>. See also
+    <a href="strategy-pattern.html">01 — Strategy pattern</a> ·
+    <a href="deployment-topology.html">07 — Deployment topology</a>.
+  </footer>
+</div>
+</body>
+</html>

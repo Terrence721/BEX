@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEX — data model</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #f6f7f9; --ink: #14181f; --ink-soft: #4b5563;
+    --border: #e2e5ea; --card-bg: #ffffff; --accent: #3457d5;
+    --pk-bg: #fff4e0; --pk-ink: #8a5a00; --pk-border: #f0c987;
+    --fk-bg: #eef1fb; --fk-ink: #3457d5; --fk-border: #c3ccef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+      --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+      --pk-bg: #352505; --pk-ink: #f0c25c; --pk-border: #8a6a0e;
+      --fk-bg: #1c2338; --fk-ink: #9db0ff; --fk-border: #33407a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a; --bg-subtle: #1a1e25; --ink: #eef1f6; --ink-soft: #a4acb8;
+    --border: #2a2f38; --card-bg: #171b22; --accent: #7c94ff;
+    --pk-bg: #352505; --pk-ink: #f0c25c; --pk-border: #8a6a0e;
+    --fk-bg: #1c2338; --fk-ink: #9db0ff; --fk-border: #33407a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; font-weight: 700; color: var(--accent); margin: 0 0 0.6rem; }
+  h1 { margin: 0 0 0.6rem; font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -0.01em; }
+  .dek { color: var(--ink-soft); max-width: 70ch; margin: 0 0 1.6rem; font-size: 1.02rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 0.5rem 0 2.2rem; font-size: 0.86rem; color: var(--ink-soft); }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .badge { font-size: 0.68rem; font-weight: 700; padding: 0.05rem 0.4rem; border-radius: 5px; border: 1px solid; }
+  .badge.pk { background: var(--pk-bg); color: var(--pk-ink); border-color: var(--pk-border); }
+  .badge.fk { background: var(--fk-bg); color: var(--fk-ink); border-color: var(--fk-border); }
+  h2.section { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); margin: 2.2rem 0 1rem; }
+  .entity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+  .entity-card { border: 1px solid var(--border); background: var(--card-bg); border-radius: 12px; overflow: hidden; }
+  .entity-head { background: var(--bg-subtle); padding: 0.6rem 0.9rem; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; border-bottom: 1px solid var(--border); }
+  .field-list { padding: 0.5rem 0; }
+  .field-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.32rem 0.9rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+  .field-name { display: flex; align-items: center; gap: 0.4rem; }
+  .field-type { color: var(--ink-soft); font-size: 0.78rem; }
+  .rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  .rel-list li { border: 1px solid var(--border); background: var(--card-bg); border-radius: 8px; padding: 0.55rem 0.9rem; font-size: 0.88rem; }
+  .rel-list code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent); font-weight: 600; }
+  .rel-list .rel-note { color: var(--ink-soft); }
+  footer { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--ink-soft); }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">BEX — diagram 04</p>
+  <h1>Data model</h1>
+  <p class="dek">
+    One Cloud SQL instance per bounded context — no cross-service joins. These tables live in different
+    databases; the relationships below are enforced by event contracts, not foreign keys, except where a table
+    is genuinely owned and queried within one service.
+  </p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="badge pk">PK</span> Primary key</div>
+    <div class="legend-item"><span class="badge fk">FK</span> Foreign key (referenced by id only, cross-service)</div>
+  </div>
+
+  <h2 class="section">Entities</h2>
+  <div class="entity-grid">
+    <div class="entity-card">
+      <div class="entity-head">Instruments</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge pk">PK</span> InstrumentId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">CcyPair</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">TenorType</span><span class="field-type">string</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">Quotes</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge pk">PK</span> QuoteId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> InstrumentId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">Bid / Offer</span><span class="field-type">decimal</span></div>
+        <div class="field-row"><span class="field-name">StrategyId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">Timestamp</span><span class="field-type">datetime</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">Orders</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge pk">PK</span> OrderId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> ClientId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> InstrumentId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">Side / Qty</span><span class="field-type">enum / decimal</span></div>
+        <div class="field-row"><span class="field-name">Status</span><span class="field-type">enum</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">Trades</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge pk">PK</span> TradeId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> OrderId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">ExecPrice / ExecQty</span><span class="field-type">decimal</span></div>
+        <div class="field-row"><span class="field-name">SettlementDate</span><span class="field-type">date</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">Positions</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> ClientId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> InstrumentId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">NetQty</span><span class="field-type">decimal</span></div>
+        <div class="field-row"><span class="field-name">AsOf</span><span class="field-type">datetime</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">StrategyAssignments</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge fk">FK</span> ClientId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">InstrumentClass</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">StrategyId / Version</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">EffectiveFrom</span><span class="field-type">datetime</span></div>
+      </div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-head">ClientAccounts</div>
+      <div class="field-list">
+        <div class="field-row"><span class="field-name"><span class="badge pk">PK</span> ClientId</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">Segment</span><span class="field-type">string</span></div>
+        <div class="field-row"><span class="field-name">CreditLimit</span><span class="field-type">decimal</span></div>
+        <div class="field-row"><span class="field-name">KycStatus</span><span class="field-type">enum</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">Relationships</h2>
+  <ul class="rel-list">
+    <li><code>Instruments</code> → <code>Quotes</code> <span class="rel-note">— one instrument, many quotes over time (append-only, partitioned by day)</span></li>
+    <li><code>Instruments</code> → <code>Orders</code> <span class="rel-note">— one instrument, many orders</span></li>
+    <li><code>ClientAccounts</code> → <code>Orders</code> <span class="rel-note">— a client places many orders</span></li>
+    <li><code>Orders</code> → <code>Trades</code> <span class="rel-note">— one order, one or more fills</span></li>
+    <li><code>Trades</code> ⇢ <code>Positions</code> <span class="rel-note">— Positions is rebuilt from Trades via event projection, not a live foreign key</span></li>
+    <li><code>ClientAccounts</code> → <code>Positions</code> <span class="rel-note">— net exposure per client per instrument</span></li>
+    <li><code>ClientAccounts</code> → <code>StrategyAssignments</code> <span class="rel-note">— which IFxStrategy a client gets, per instrument class</span></li>
+  </ul>
+
+  <footer>
+    High-write tables (<code>Quotes</code>, <code>Orders</code>) use read replicas for blotter queries so the
+    transactional path never competes with UI polling. See the
+    <a href="../fx-strategy-engine-design.md#net-core-service-layer--sql-data-model">design doc</a>.
+    Part of <a href="https://github.com/Terrence721/BEX">BEX</a>.
+  </footer>
+</div>
+</body>
+</html>
