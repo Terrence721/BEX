@@ -1,0 +1,26 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Node / React
+node_modules/
+dist/
+build/
+.env
+.env.local
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!example.tfvars
+
+# VS Code workspace state (keep the shared config files, ignore local state)
+*.code-workspace.bak
+
+# OS
+.DS_Store
+Thumbs.db

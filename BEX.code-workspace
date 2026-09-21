@@ -1,0 +1,38 @@
+{
+	"folders": [
+		{
+			"name": "BEX",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/bin": true,
+			"**/obj": true,
+			"**/node_modules": true,
+			"**/.terraform": true
+		},
+		"editor.formatOnSave": true,
+		"editor.tabSize": 2,
+		"[csharp]": {
+			"editor.tabSize": 4
+		},
+		"omnisharp.enableEditorConfigSupport": true,
+		"typescript.tsdk": "node_modules/typescript/lib",
+		"markdown.mermaid.enabled": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-dotnettools.csharp",
+			"ms-dotnettools.csdevkit",
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"hashicorp.terraform",
+			"googlecloudtools.cloudcode",
+			"ms-azuretools.vscode-docker",
+			"mtxr.sqltools",
+			"bierner.markdown-mermaid",
+			"eamodio.gitlens"
+		]
+	}
+}

@@ -1,0 +1,44 @@
+{
+	"name": "BEX FX Strategy Platform",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:8.0",
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "20"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"dsznajder.es7-react-js-snippets",
+				"burkeholland.simple-react-snippets",
+				"hashicorp.terraform",
+				"googlecloudtools.cloudcode",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"ms-mssql.mssql",
+				"redhat.vscode-yaml",
+				"bierner.markdown-mermaid",
+				"davidanson.vscode-markdownlint",
+				"eamodio.gitlens",
+				"humao.rest-client",
+				"ms-playwright.playwright",
+				"github.vscode-github-actions",
+				"streetsidesoftware.code-spell-checker"
+			],
+			"settings": {
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"[csharp]": {
+					"editor.defaultFormatter": "ms-dotnettools.csharp",
+					"editor.tabSize": 4
+				},
+				"markdown.mermaid.enabled": true
+			}
+		}
+	},
+	"postCreateCommand": "dotnet --version && node --version"
+}

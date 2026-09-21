@@ -1,0 +1,26 @@
+{
+	// These are prompts only — opening this folder normally still installs to your
+	// GLOBAL VS Code extension set. For true workspace-only isolation (no conflicts
+	// with your other projects), use "Reopen in Container" — see .devcontainer/devcontainer.json.
+	"recommendations": [
+		"ms-dotnettools.csharp",
+		"ms-dotnettools.csdevkit",
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"dsznajder.es7-react-js-snippets",
+		"burkeholland.simple-react-snippets",
+		"hashicorp.terraform",
+		"googlecloudtools.cloudcode",
+		"ms-azuretools.vscode-docker",
+		"ms-kubernetes-tools.vscode-kubernetes-tools",
+		"ms-mssql.mssql",
+		"redhat.vscode-yaml",
+		"bierner.markdown-mermaid",
+		"davidanson.vscode-markdownlint",
+		"eamodio.gitlens",
+		"humao.rest-client",
+		"ms-playwright.playwright",
+		"github.vscode-github-actions",
+		"streetsidesoftware.code-spell-checker"
+	]
+}
