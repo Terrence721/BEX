@@ -2,7 +2,7 @@
 	"name": "BEX FX Strategy Platform",
 	"image": "mcr.microsoft.com/devcontainers/dotnet:8.0",
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {
+		"ghcr.io/devcontainers/features/node:2": {
 			"version": "20"
 		}
 	},
