@@ -1,6 +1,6 @@
 # 💱 BEX — FX Strategy Engine
 
-A ground-up architecture and design document for an FX strategy platform serving broker-dealer and commercial-banking needs — **design phase, no service code yet.** The core bet: every FX trading behavior (market making, TWAP/VWAP execution, smart order routing, hedging, NDF pricing) is designed as an interchangeable implementation of one `IFxStrategy` interface, built directly on the GoF Strategy pattern and selected/versioned at runtime instead of hardcoded per client or desk.
+A ground-up architecture and design document for an FX strategy platform serving broker-dealer and commercial-banking needs. The core bet: every FX trading behavior (market making, TWAP/VWAP execution, smart order routing, hedging, NDF pricing) is an interchangeable strategy implementation — split by capability (quoting, execution, market-data reactivity) rather than one wide interface — built on the GoF Strategy pattern and selected/versioned at runtime instead of hardcoded per client or desk. Strategy Engine's core domain layer is implemented (see [`todo.md`](todo.md)); OMS, Risk, Pricing, the React workbench, and infrastructure are still design-phase.
 
 ## 🧭 Start Here
 
@@ -13,7 +13,7 @@ A ground-up architecture and design document for an FX strategy platform serving
 
 ## 🧭 Why This Project Matters
 
-The interesting design problem here isn't "build a trading system" — it's that a broker-dealer desk and a commercial bank's treasury desk need almost entirely different FX behaviors (market making and smart order routing vs. last-look cover-and-deal and corporate hedging programs) running on the *same* platform, for the *same* client base in some cases. Hardcoding that per-desk creates exactly the kind of branching logic nobody can safely change. The Strategy pattern turns that into a data problem instead of a code problem: which `IFxStrategy` a client gets is a `StrategyAssignment` row, promoted through shadow → canary → live without a redeploy.
+The interesting design problem here isn't "build a trading system" — it's that a broker-dealer desk and a commercial bank's treasury desk need almost entirely different FX behaviors (market making and smart order routing vs. last-look cover-and-deal and corporate hedging programs) running on the *same* platform, for the *same* client base in some cases. Hardcoding that per-desk creates exactly the kind of branching logic nobody can safely change. The Strategy pattern turns that into a data problem instead of a code problem: which strategy a client gets is a `StrategyAssignment` row, resolved by capability-specific factories (`IQuotingStrategyFactory`/`IExecutionStrategyFactory`) and promoted through shadow → canary → live without a redeploy.
 
 The same reasoning shows up in the infrastructure choices: one Cloud SQL instance per microservice with no cross-service joins, so a schema change in one service can't silently break another; a second CI/CD pipeline with an extra compliance gate specifically for anything that touches client-facing behavior or live trading logic, not for internal tooling; and branch protection on `main` that requires a PR for every change (even from the repo owner) but needs zero approvals, so the audit trail exists without blocking a solo maintainer.
 
@@ -23,28 +23,30 @@ The same reasoning shows up in the infrastructure choices: one Cloud SQL instanc
 
 ## 📋 Project Tracking
 
-- [ ] **Phase 1 — MVP.** Market making + TWAP strategies, internal React workbench, single-region GCP, no third-party access.
+- [ ] **Phase 1 — MVP.** Market making + TWAP strategies, internal React workbench, single-region GCP, no third-party access. *Partially done — strategies + strategy resolution implemented; OMS/Risk/Pricing, Cloud SQL, React, Terraform, and tests still open.*
 - [ ] **Phase 2 — Strategy breadth.** Add SOR, hedging, netting strategies; DR region live; partner portal in sandbox only.
 - [ ] **Phase 3 — Third-party GA.** Apigee production tier, FIX connectivity, full strategy catalog, deployment automation dashboard for canary strategy promotion.
 - [ ] **Phase 4 — Scale.** Multi-region active/active evaluation, corporate hedging-program strategies, expanded partner tiering.
 
-Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/10); mirrored here as a quick-glance checklist. Nothing above is checked off yet — this is still the design phase.
+Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/10); mirrored here as a quick-glance checklist. No phase is checked off in full yet.
 
 ## Repository Layout
 
 ```text
+src/                .NET Core services — StrategyEngine.Domain implemented; OMS/Risk/Pricing not started
+tests/              xUnit v3 test projects — infrastructure wired up, no tests written yet
+BEX.slnx             Solution file (cutting-edge XML format, not classic .sln)
+global.json          Pins the Microsoft.Testing.Platform test runner
 docs/               Design doc and docs/diagrams/ (standalone HTML diagrams)
 todo.md              Phase-by-phase progress log — the source of truth
-.devcontainer/       Isolated dev environment — .NET 8 + Node 20, 19 scoped VS Code extensions
-.github/             Dependabot config
+.devcontainer/       Isolated dev environment — .NET 10 + Node 20, 19 scoped VS Code extensions
+.github/             Dependabot config + build.yml CI workflow
 .vscode/             Extension recommendations (for outside the Dev Container)
 ```
 
-(No `src/` yet — see Project Tracking above.)
-
 ## 🖥 Getting Set Up
 
-There's no application to run yet, but the dev environment is real. Open [`BEX.code-workspace`](BEX.code-workspace) in VS Code, then **Dev Containers: Reopen in Container** — this builds an isolated .NET 8 + Node 20 container with all 19 project-specific extensions pre-installed, entirely scoped to this repo so it never touches your global VS Code setup or any other project on the same machine.
+Open [`BEX.code-workspace`](BEX.code-workspace) in VS Code, then **Dev Containers: Reopen in Container** — this builds an isolated .NET 10 + Node 20 container with all 19 project-specific extensions pre-installed, entirely scoped to this repo so it never touches your global VS Code setup or any other project on the same machine. Once inside, `dotnet build BEX.slnx` builds the solution; `dotnet test` runs the test project (currently empty — no test methods written yet). There's no runnable application yet — no API, no OMS, no way to place an order end to end.
 
 ---
 
