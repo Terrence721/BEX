@@ -74,58 +74,77 @@
   <p class="eyebrow">BEX — diagram 01</p>
   <h1>Strategy pattern — resolution &amp; catalog</h1>
   <p class="dek">
-    Every FX trading behavior is an interchangeable implementation of one interface, picked at runtime by
-    <code>(ClientId, InstrumentClass)</code> instead of hardcoded per desk. This is the shape behind that claim.
+    Every FX trading behavior is an interchangeable strategy implementation, picked at runtime by
+    <code>(ClientId, InstrumentClass)</code> instead of hardcoded per desk — decomposed by capability rather than
+    one wide interface, after building it surfaced a real ISP violation (not every strategy quotes, not every
+    strategy executes). <strong>2 of 10 catalog strategies are actually built; the rest are designed only.</strong>
   </p>
 
   <div class="legend">
     <div class="legend-item"><span class="swatch contract"></span> Contract (interface)</div>
-    <div class="legend-item"><span class="swatch done"></span> Concrete strategy implementation</div>
-    <div class="legend-item"><span class="swatch active"></span> Runtime resolution</div>
-    <div class="legend-item"><span class="swatch todo"></span> Supporting data / config</div>
+    <div class="legend-item"><span class="swatch done"></span> Built in code</div>
+    <div class="legend-item"><span class="swatch todo"></span> Designed only / not code</div>
   </div>
 
   <div class="graph">
-    <p class="layer-label">Contract — every strategy implements this, nothing else</p>
+    <p class="layer-label">Contracts — split by capability, not one wide interface</p>
     <div class="row">
-      <div class="node contract wide">
-        IFxStrategy
-        <span class="sig">GetQuote(RequestContext) · Execute(Order) · OnMarketDataUpdate(Tick) · Backtest(HistoricalTickSeries)</span>
-      </div>
+      <div class="node contract">IStrategyIdentity<span class="sig">StrategyId · Version</span></div>
+      <div class="node contract">IQuotingStrategy<span class="sig">extends IStrategyIdentity</span></div>
+      <div class="node contract">IExecutionStrategy<span class="sig">extends IStrategyIdentity</span></div>
+      <div class="node contract">IMarketDataReactive<span class="sig">standalone — no identity needed</span></div>
     </div>
 
     <div class="arrow-row"><span>▲ implemented by ▲</span></div>
 
-    <p class="layer-label">Catalog — 10 concrete strategies, same contract</p>
+    <p class="layer-label">Catalog — 2 of 10 built</p>
     <div class="row">
-      <div class="node done">MarketMakingStrategy</div>
-      <div class="node done">TwapExecutionStrategy</div>
-      <div class="node done">VwapExecutionStrategy</div>
-      <div class="node done">IcebergExecutionStrategy</div>
-      <div class="node done">SmartOrderRoutingStrategy</div>
+      <div class="node done">MarketMakingStrategy<span class="sig">IQuotingStrategy</span></div>
+      <div class="node done">TwapExecutionStrategy<span class="sig">IExecutionStrategy</span></div>
     </div>
     <div class="row">
-      <div class="node done">LastLookCoverAndDealStrategy</div>
-      <div class="node done">InternalizationNettingStrategy</div>
-      <div class="node done">DeltaHedgingStrategy</div>
-      <div class="node done">NdfPricingStrategy</div>
-      <div class="node done">CorporateHedgingProgramStrategy</div>
+      <div class="node todo">VwapExecutionStrategy</div>
+      <div class="node todo">IcebergExecutionStrategy</div>
+      <div class="node todo">SmartOrderRoutingStrategy</div>
+      <div class="node todo">LastLookCoverAndDealStrategy</div>
+      <div class="node todo">InternalizationNettingStrategy</div>
+    </div>
+    <div class="row">
+      <div class="node todo">DeltaHedgingStrategy</div>
+      <div class="node todo">NdfPricingStrategy</div>
+      <div class="node todo">CorporateHedgingProgramStrategy</div>
+    </div>
+
+    <div class="arrow-row"><span>▲ reads current price from ▲</span></div>
+
+    <p class="layer-label">Shared market-data component — avoids every strategy duplicating tick-tracking</p>
+    <div class="row">
+      <div class="node done wide">
+        ILatestPriceProvider / InMemoryLatestPriceProvider
+        <span class="sig">implements IMarketDataReactive itself — MarketMakingStrategy depends on this instead of implementing IMarketDataReactive directly</span>
+      </div>
     </div>
 
     <div class="arrow-row"><span>▲ selected by ▲</span></div>
 
-    <p class="layer-label">Resolution — picks one concrete strategy per request, no redeploy</p>
+    <p class="layer-label">Resolution — split by capability too, both built</p>
     <div class="row">
-      <div class="node active wide">
-        StrategyFactory.Resolve(ClientId, InstrumentClass)
-        <span class="sig">handed to StrategyContext, which only ever sees the IFxStrategy interface</span>
+      <div class="node done wide">
+        IQuotingStrategyFactory.ResolveQuotingStrategy(ClientId, InstrumentClass)
+        <span class="sig">QuotingStrategyFactory — injected registry, not config files or redeploys</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="node done wide">
+        IExecutionStrategyFactory.ResolveExecutionStrategy(ClientId, InstrumentClass)
+        <span class="sig">ExecutionStrategyFactory — same shape, separate interface (genuinely separate call paths)</span>
       </div>
     </div>
 
     <div class="arrow-row"><span>▲ reads ▲</span></div>
     <hr class="divider">
 
-    <p class="layer-label">Supporting data — a SQL row, not code</p>
+    <p class="layer-label">Supporting data — a SQL row, not code (no database exists yet)</p>
     <div class="row">
       <div class="node todo wide">
         StrategyAssignment
@@ -138,7 +157,8 @@
     Promoting a new strategy version is a <code>StrategyAssignment</code> row update, not a deploy — the same
     binary already runs all three modes. <strong>Shadow</strong> logs decisions without acting on them;
     <strong>Canary</strong> acts, but only for the client/instrument slice named in the row; <strong>Live</strong>
-    is the default for everyone else.
+    is the default for everyone else. This promotion mechanism, and backtesting via a generic replay harness, are
+    both design intent — neither is built yet.
   </p>
 
   <footer>
