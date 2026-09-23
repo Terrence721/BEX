@@ -149,7 +149,7 @@
     <li><code>Orders</code> → <code>Trades</code> <span class="rel-note">— one order, one or more fills</span></li>
     <li><code>Trades</code> ⇢ <code>Positions</code> <span class="rel-note">— Positions is rebuilt from Trades via event projection, not a live foreign key</span></li>
     <li><code>ClientAccounts</code> → <code>Positions</code> <span class="rel-note">— net exposure per client per instrument</span></li>
-    <li><code>ClientAccounts</code> → <code>StrategyAssignments</code> <span class="rel-note">— which IFxStrategy a client gets, per instrument class</span></li>
+    <li><code>ClientAccounts</code> → <code>StrategyAssignments</code> <span class="rel-note">— which strategy (by StrategyId/Version) a client gets, per instrument class</span></li>
   </ul>
 
   <footer>
