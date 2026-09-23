@@ -79,7 +79,7 @@
   <p class="dek">
     Internal services and the internal React app share one pipeline with standard peer review. Anything that
     touches client-facing behavior or live trading logic — the partner portal, third-party FIX/REST endpoints,
-    or an IFxStrategy version promotion — runs on a second pipeline with an extra compliance/product gate.
+    or a strategy version promotion — runs on a second pipeline with an extra compliance/product gate.
   </p>
 
   <div class="legend">
@@ -157,7 +157,7 @@
   </div>
 
   <footer>
-    Strategy Engine deploys use canary-by-traffic-slice specifically so a bad <code>IFxStrategy</code> version is
+    Strategy Engine deploys use canary-by-traffic-slice specifically so a bad strategy version is
     caught against a small percentage of real flow before full cutover. Part of
     <a href="https://github.com/Terrence721/BEX">BEX</a>.
   </footer>
