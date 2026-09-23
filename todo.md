@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 21, 2026 (Phase 1 underway — StrategyEngine.Domain's core implementation complete, 22 files, plus xUnit v3 test infrastructure wired up; no tests written yet, and OMS/Risk/Pricing/Terraform/React are all still not started)
+**Last Updated:** September 22, 2026 (Phase 1 underway — StrategyEngine.Domain implemented and now fully tested, 13 tests passing; OMS/Risk/Pricing/Terraform/React are all still not started)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Project Tracking checklist and the [project board](https://github.com/users/Terrence721/projects/10) both mirror this file, not the other way around.
 
@@ -28,9 +28,10 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | README + board linkage | README restructured, linked to diagrams/board — [#16](https://github.com/Terrence721/BEX/issues/16)/[#17](https://github.com/Terrence721/BEX/issues/17) |
 | Project tracking | Public [project board](https://github.com/users/Terrence721/projects/10), 4 milestones, issues filed and triaged — [#18](https://github.com/Terrence721/BEX/issues/18) |
 | **StrategyEngine.Domain** | Strategy-pattern engine implemented — see Milestone 2 above. 22 files, 0 warnings/errors. — [#9](https://github.com/Terrence721/BEX/issues/9) |
-| **xUnit v3 test infrastructure** | `global.json`, test project, wired into the solution, project reference to StrategyEngine.Domain. **No test files written yet.** — [#69](https://github.com/Terrence721/BEX/issues/69) |
+| **xUnit v3 test infrastructure** | `global.json`, test project, wired into the solution, project reference to StrategyEngine.Domain — [#69](https://github.com/Terrence721/BEX/issues/69) |
+| **StrategyEngine.Domain test coverage** | 13 tests across 6 files, all passing, verified via real `dotnet test` runs at every step — [#87](https://github.com/Terrence721/BEX/issues/87) |
 
-**Not done:** OMS, Risk, and Pricing services (any layer); Cloud SQL schema/migrations; the internal React workbench; Terraform/GKE; CI/CD beyond a basic build check; and — despite the test *project* existing — no actual test has been written against `StrategyEngine.Domain` yet. **Actually still open:** the rest of Phase 1 (see **Still to do**) plus all of Phases 2-4.
+**Not done:** OMS, Risk, and Pricing services (any layer); Cloud SQL schema/migrations; the internal React workbench; Terraform/GKE; CI/CD beyond a basic build check. **Actually still open:** the rest of Phase 1 (see **Still to do**) plus all of Phases 2-4.
 
 ## ✅ Done
 
@@ -85,7 +86,13 @@ One PR per file, each verified building clean before merge. Full file/PR/commit 
 
 | Date | What |
 | - | - |
-| 2026-09-21 | `global.json` (`Microsoft.Testing.Platform` runner), `StrategyEngine.Domain.Tests.csproj` (`xunit.v3.mtp-v2`, confirmed by inspecting a real generated template rather than assuming the package name), `xunit.runner.json`, wired into `BEX.slnx`, project reference to `StrategyEngine.Domain`. All verified building clean. **No test methods written yet — this is infrastructure only.** [#66](https://github.com/Terrence721/BEX/pull/66)–[#74](https://github.com/Terrence721/BEX/pull/74) |
+| 2026-09-21 | `global.json` (`Microsoft.Testing.Platform` runner), `StrategyEngine.Domain.Tests.csproj` (`xunit.v3.mtp-v2`, confirmed by inspecting a real generated template rather than assuming the package name), `xunit.runner.json`, wired into `BEX.slnx`, project reference to `StrategyEngine.Domain`. All verified building clean. [#66](https://github.com/Terrence721/BEX/pull/66)–[#74](https://github.com/Terrence721/BEX/pull/74) |
+
+### StrategyEngine.Domain test coverage (#87)
+
+| Date | What |
+| - | - |
+| 2026-09-22 | 6 test files, one PR each, every one verified with a real `dotnet test` run (not just build): `InMemoryLatestPriceProviderTests`, `MarketMakingStrategyTests` (hand-computed spread math), `TwapExecutionStrategyTests` (Buy/Sell fill pricing), `FakeStrategyAssignmentRepository` (a shared test double, added after catching that it would've been duplicated across both factory test files), `QuotingStrategyFactoryTests`, `ExecutionStrategyFactoryTests`. 13 tests, 13 passing. [#81](https://github.com/Terrence721/BEX/pull/81)–[#86](https://github.com/Terrence721/BEX/pull/86) |
 
 ## 🚧 Still to do
 
@@ -99,8 +106,6 @@ One PR per file, each verified building clean before merge. Full file/PR/commit 
 | 4 | Internal React workbench shell (blotter + strategy console) | Not started — [#11](https://github.com/Terrence721/BEX/issues/11) |
 | 5 | Terraform base — VPC, GKE cluster, Cloud SQL (single region) | Not started — [#12](https://github.com/Terrence721/BEX/issues/12) |
 | 6 | Internal CI/CD pipeline (Cloud Build → dev → UAT canary → prod) | Not started — [#13](https://github.com/Terrence721/BEX/issues/13) — a basic build-check workflow exists (`build.yml`), but not the full pipeline described here |
-
-Not yet tracked as its own issue, but a real gap: **no tests exist against `StrategyEngine.Domain`** despite the test project being fully wired up. Worth its own issue before Phase 1 is called done.
 
 **Phases 2-4** — not yet broken into concrete tasks:
 
