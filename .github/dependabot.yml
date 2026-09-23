@@ -5,8 +5,16 @@ updates:
     schedule:
       interval: "weekly"
 
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
 # Add more `updates` entries here once the corresponding manifest exists:
 #   - package-ecosystem: "npm"             # once a package.json lands (the React apps)
-#   - package-ecosystem: "nuget"           # once a .csproj lands (the .NET Core services)
 #   - package-ecosystem: "terraform"       # once .tf files land (the GCP infra)
-#   - package-ecosystem: "github-actions"  # once .github/workflows/*.yml lands
