@@ -33,8 +33,8 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 ## Repository Layout
 
 ```text
-src/                .NET Core services — StrategyEngine.Domain implemented; OMS/Risk/Pricing not started
-tests/              xUnit v3 test projects — infrastructure wired up, no tests written yet
+src/                .NET Core services — StrategyEngine.Domain implemented + tested; StrategyEngine.Api scaffolded (no endpoints yet); OMS/Risk/Pricing not started
+tests/              xUnit v3 test project — 13 tests across 6 files, all passing
 BEX.slnx             Solution file (cutting-edge XML format, not classic .sln)
 global.json          Pins the Microsoft.Testing.Platform test runner
 docs/               Design doc and docs/diagrams/ (standalone HTML diagrams)
@@ -46,7 +46,7 @@ todo.md              Phase-by-phase progress log — the source of truth
 
 ## 🖥 Getting Set Up
 
-Open [`BEX.code-workspace`](BEX.code-workspace) in VS Code, then **Dev Containers: Reopen in Container** — this builds an isolated .NET 10 + Node 20 container with all 19 project-specific extensions pre-installed, entirely scoped to this repo so it never touches your global VS Code setup or any other project on the same machine. Once inside, `dotnet build BEX.slnx` builds the solution; `dotnet test` runs the test project (currently empty — no test methods written yet). There's no runnable application yet — no API, no OMS, no way to place an order end to end.
+Open [`BEX.code-workspace`](BEX.code-workspace) in VS Code, then **Dev Containers: Reopen in Container** — this builds an isolated .NET 10 + Node 20 container with all 19 project-specific extensions pre-installed, entirely scoped to this repo so it never touches your global VS Code setup or any other project on the same machine. Once inside, `dotnet build BEX.slnx` builds the solution; `dotnet test` runs the test project (13 tests, all passing). StrategyEngine.Api is an empty scaffold (builds and runs, no endpoints yet) — still no way to place an order end to end.
 
 ---
 
