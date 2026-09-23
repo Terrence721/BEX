@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 22, 2026 (Phase 1 underway — StrategyEngine.Domain implemented and now fully tested, 13 tests passing; OMS/Risk/Pricing/Terraform/React are all still not started)
+**Last Updated:** September 22, 2026 (Phase 1 underway — StrategyEngine.Domain implemented and fully tested, 13 tests passing; StrategyEngine.Api scaffolded (no endpoints yet); OMS/Risk/Pricing/Terraform/React are all still not started)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Project Tracking checklist and the [project board](https://github.com/users/Terrence721/projects/10) both mirror this file, not the other way around.
 
@@ -30,6 +30,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | **StrategyEngine.Domain** | Strategy-pattern engine implemented — see Milestone 2 above. 22 files, 0 warnings/errors. — [#9](https://github.com/Terrence721/BEX/issues/9) |
 | **xUnit v3 test infrastructure** | `global.json`, test project, wired into the solution, project reference to StrategyEngine.Domain — [#69](https://github.com/Terrence721/BEX/issues/69) |
 | **StrategyEngine.Domain test coverage** | 13 tests across 6 files, all passing, verified via real `dotnet test` runs at every step — [#87](https://github.com/Terrence721/BEX/issues/87) |
+| **StrategyEngine.Api scaffold** | Project file, wired into `BEX.slnx`, project reference to StrategyEngine.Domain, minimal `Program.cs` (builds and runs, no endpoints yet) — [#8](https://github.com/Terrence721/BEX/issues/8) |
 
 **Not done:** OMS, Risk, and Pricing services (any layer); Cloud SQL schema/migrations; the internal React workbench; Terraform/GKE; CI/CD beyond a basic build check. **Actually still open:** the rest of Phase 1 (see **Still to do**) plus all of Phases 2-4.
 
@@ -94,13 +95,19 @@ One PR per file, each verified building clean before merge. Full file/PR/commit 
 | - | - |
 | 2026-09-22 | 6 test files, one PR each, every one verified with a real `dotnet test` run (not just build): `InMemoryLatestPriceProviderTests`, `MarketMakingStrategyTests` (hand-computed spread math), `TwapExecutionStrategyTests` (Buy/Sell fill pricing), `FakeStrategyAssignmentRepository` (a shared test double, added after catching that it would've been duplicated across both factory test files), `QuotingStrategyFactoryTests`, `ExecutionStrategyFactoryTests`. 13 tests, 13 passing. [#81](https://github.com/Terrence721/BEX/pull/81)–[#86](https://github.com/Terrence721/BEX/pull/86) |
 
+### StrategyEngine.Api scaffold (#8)
+
+| Date | What |
+| - | - |
+| 2026-09-22 | `StrategyEngine.Api.csproj` (`Microsoft.NET.Sdk.Web`, net10.0, `Microsoft.AspNetCore.OpenApi` package reference), wired into `BEX.slnx`, minimal `Program.cs` (bundled with the slnx wiring as a one-time deviation from one-file-at-a-time, since `Sdk.Web` requires an entry point to build — unlike the `StrategyEngine.Domain` class library, which could stay empty). Project reference to `StrategyEngine.Domain` added. No endpoints, DI registrations, or OpenAPI wiring yet. [#90](https://github.com/Terrence721/BEX/pull/90)/[#91](https://github.com/Terrence721/BEX/pull/91)/[#92](https://github.com/Terrence721/BEX/pull/92) |
+
 ## 🚧 Still to do
 
 **Phase 1 — MVP** ([milestone](https://github.com/Terrence721/BEX/milestone/1), 1 of 6 tracked items done):
 
 | # | Item | Status |
 | - | - | - |
-| 1 | Scaffold .NET Core solution structure (Strategy Engine, OMS, Risk, Pricing) | **Partially done** — Strategy Engine's Domain layer complete; Application/Infrastructure/API layers, and OMS/Risk/Pricing entirely, not started — [#8](https://github.com/Terrence721/BEX/issues/8) |
+| 1 | Scaffold .NET Core solution structure (Strategy Engine, OMS, Risk, Pricing) | **Partially done** — Strategy Engine's Domain layer complete and tested; API layer minimally scaffolded (csproj + solution wiring + project reference to Domain — no endpoints, DI registrations, or OpenAPI wiring yet); Application/Infrastructure layers for Strategy Engine, and OMS/Risk/Pricing entirely, still not started — [#8](https://github.com/Terrence721/BEX/issues/8) |
 | 2 | ~~Implement IFxStrategy + MarketMakingStrategy + TwapExecutionStrategy~~ | **Done** — see StrategyEngine.Domain above — [#9](https://github.com/Terrence721/BEX/issues/9) |
 | 3 | Cloud SQL schema + migrations (Instruments, Quotes, Orders, Trades) | Not started — [#10](https://github.com/Terrence721/BEX/issues/10) |
 | 4 | Internal React workbench shell (blotter + strategy console) | Not started — [#11](https://github.com/Terrence721/BEX/issues/11) |
